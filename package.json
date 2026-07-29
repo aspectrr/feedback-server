@@ -1,0 +1,15 @@
+{
+  "name": "aspectrr-feedback",
+  "version": "0.2.0",
+  "private": true,
+  "module": "src/index.ts",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch run src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "elysia": "^1.4.29",
+    "zod": "^4.4.3"
+  }
+}

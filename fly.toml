@@ -1,0 +1,23 @@
+# ponytail: rename `app` to a globally-unique Fly app name you own before `fly deploy`.
+app = "aspectrr-feedback"
+primary_region = "iad"
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+# Persistent volume for the SQLite file. Create before first deploy:
+#   fly volumes create feedback_data --size 1
+[[mounts]]
+  source = "feedback_data"
+  destination = "/data"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

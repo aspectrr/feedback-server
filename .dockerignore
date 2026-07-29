@@ -1,0 +1,9 @@
+node_modules
+bun.lock
+.git
+*.db
+*.db-*
+skill-snippet.md
+Dockerfile
+fly.toml
+.dockerignore
