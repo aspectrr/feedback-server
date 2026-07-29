@@ -1,0 +1,10 @@
+# Pix Agent
+.pi/
+.pi-lens/
+
+# deps
+node_modules/
+
+# local dev sqlite
+*.db
+*.db-*
