@@ -1,0 +1,33 @@
+{
+  "name": "@aspectrr/feedback-widget",
+  "version": "0.1.0",
+  "description": "Floating feedback button + dialog for Solid sites. Submits to aspectrr-feedback server with optional page screenshot.",
+  "type": "module",
+  "main": "./dist/feedback-widget.js",
+  "module": "./dist/feedback-widget.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/feedback-widget.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly"
+  },
+  "dependencies": {
+    "@kobalte/core": "^0.13.10",
+    "modern-screenshot": "^4.6.0"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.8.0"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.15",
+    "typescript": "^5.8.0",
+    "vite": "^8.2.2",
+    "vite-plugin-dts": "^4.5.0",
+    "vite-plugin-solid": "^2.11.0"
+  }
+}

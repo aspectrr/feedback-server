@@ -40,6 +40,20 @@ CODE=$(curl -s -o /dev/null -w '%{http_code}' $BASE/feedback/$ID/screenshot -H "
 CODE=$(curl -s -o /dev/null -w '%{http_code}' $BASE/feedback/$ID/screenshot -H "x-api-key: testkey")
 [ "$CODE" = "404" ] || { echo "FAIL: 404 path, got $CODE"; exit 1; }
 
+# browser CORS preflight + actual request carry ACAO headers
+ACAO=$(curl -s -D - -o /dev/null -X OPTIONS $BASE/token -H "Origin: https://example.com" \
+  -H "Access-Control-Request-Method: POST" | grep -i '^access-control-allow-origin' | tr -d '\r')
+[ -n "$ACAO" ] || { echo "FAIL: CORS preflight"; exit 1; }
+ACAO=$(curl -s -D - -o /dev/null -X POST $BASE/token -H "Origin: https://example.com" | grep -i '^access-control-allow-origin' | tr -d '\r')
+[ -n "$ACAO" ] || { echo "FAIL: CORS POST"; exit 1; }
+
+# severity "bug" accepted (online-poker sends it)
+TOKEN=$(curl -s -X POST $BASE/token | jq -r .token)
+CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST $BASE/feedback \
+  -H "x-feedback-token: $TOKEN" -H "content-type: application/json" \
+  -d '{"source":"test","message":"bug sev","severity":"bug"}')
+[ "$CODE" = "201" ] || { echo "FAIL: severity bug, got $CODE"; exit 1; }
+
 # oversize rejected with 413
 TOKEN=$(curl -s -X POST $BASE/token | jq -r .token)
 BIG=$(head -c 6000000 /dev/zero | base64 | tr -d '\n')

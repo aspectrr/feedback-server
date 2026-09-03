@@ -8,3 +8,7 @@ node_modules/
 # local dev sqlite
 *.db
 *.db-*
+
+# widget
+widget/node_modules/
+widget/dist/

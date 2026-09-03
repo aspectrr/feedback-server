@@ -38,7 +38,7 @@ if (!cols.includes("screenshot")) db.exec("ALTER TABLE feedback ADD COLUMN scree
 if (!cols.includes("screenshot_mime"))
   db.exec("ALTER TABLE feedback ADD COLUMN screenshot_mime TEXT");
 
-export const SEVERITIES = new Set(["info", "warning", "error", "suggestion"]);
+export const SEVERITIES = new Set(["info", "warning", "error", "suggestion", "bug"]);
 export const SCREENSHOT_MIMES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 export const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
 export const TOKEN_TTL_MS = 10 * 60_000;
