@@ -5,8 +5,8 @@ import { capturePage } from "./capture";
 export type FeedbackWidgetProps = {
   /** Slug identifying the site; stored as `source` on the feedback server. */
   source: string;
-  /** Feedback server base URL. Defaults to the Fly prod host. */
-  server?: string;
+  /** Feedback server base URL. Required — no default baked into the package. */
+  server: string;
   /** Optional agent identifier forwarded as `agent_id`. */
   agentId?: string;
   /** Trigger button text. Default "Feedback". */
@@ -21,7 +21,7 @@ export type FeedbackWidgetProps = {
  * (see README).
  */
 export function FeedbackWidget(props: FeedbackWidgetProps) {
-  const base = () => (props.server ?? "https://aspectrr-feedback.fly.dev").replace(/\/$/, "");
+  const base = () => props.server.replace(/\/$/, "");
   const [open, setOpen] = createSignal(false);
   const [message, setMessage] = createSignal("");
   const [rating, setRating] = createSignal(0);

@@ -1,0 +1,27 @@
+name: Publish widget
+
+on:
+  push:
+    tags: ["widget-v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+      - run: bun install
+        working-directory: widget
+      - run: bun run build
+        working-directory: widget
+      - run: npm publish
+        working-directory: widget
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

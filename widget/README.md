@@ -11,29 +11,41 @@ trap, ESC, aria) in the shadcn idiom.
 
 ## Install
 
+Private package — distributed via GitHub Packages, not public npm. One-time
+setup per machine:
+
+1. Create a GitHub PAT with `read:packages` (github.com → Settings → Developer
+   settings), or reuse an existing token.
+2. Add to `~/.npmrc`:
+
+```text
+@aspectrr:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_TOKEN
+```
+
+3. Then in each project:
+
 ```bash
 bun add @aspectrr/feedback-widget
 ```
-
-Peer dep: `solid-js` ^1.8. Ships compiled ESM + types.
 
 ## Use
 
 ```tsx
 import { FeedbackWidget } from "@aspectrr/feedback-widget";
 
-// in your root layout
-<FeedbackWidget source="online-poker" />
+// in your root layout — `server` is required, nothing is hardcoded
+<FeedbackWidget source="online-poker" server="https://aspectrr-feedback.fly.dev" />
 ```
 
 Props:
 
-| prop      | type     | default                              | notes                          |
-| --------- | -------- | ------------------------------------ | ------------------------------ |
-| `source`  | `string` | required                             | site slug (`source` on server) |
-| `server`  | `string` | `https://aspectrr-feedback.fly.dev`  | server base URL                |
-| `agentId` | `string` | —                                    | forwarded as `agent_id`        |
-| `label`   | `string` | `"Feedback"`                         | trigger button text            |
+| prop      | type     | default | notes                          |
+| --------- | -------- | ------- | ------------------------------ |
+| `source`  | `string` | required | site slug (`source` on server) |
+| `server`  | `string` | required | feedback server base URL       |
+| `agentId` | `string` | —        | forwarded as `agent_id`        |
+| `label`   | `string` | `"Feedback"` | trigger button text        |
 
 ## Tailwind setup (required)
 
@@ -65,3 +77,11 @@ Read feedback back via the admin API (`GET /feedback`,
 bun install
 bun run build   # vite lib build + d.ts into dist/
 ```
+
+## Publish
+
+Tag `widget-v0.1.0` (any `widget-v*`) → GitHub Actions builds and publishes to
+GitHub Packages with the built-in `GITHUB_TOKEN`. Nothing to do locally.
+
+Note: npm versions can't be reused — bump `widget/package.json` version before
+each new tag.

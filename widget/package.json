@@ -13,6 +13,14 @@
     }
   },
   "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aspectrr/feedback-server.git",
+    "directory": "widget"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly"
   },
