@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import { cors } from "@elysiajs/cors";
 import { httpRoutes } from "./http";
 import { mcpHandler } from "./mcp";
 
@@ -9,6 +10,9 @@ if (!ADMIN_KEY) {
 }
 
 const app = new Elysia()
+  // Browser clients (feedback widget on hosted sites) call /token + /feedback
+  // cross-origin. Admin routes stay key-gated; CORS doesn't change that.
+  .use(cors())
   .use(httpRoutes())
   // MCP endpoint — agent connects here to read feedback. Same admin key as GET /feedback.
   .all("/mcp", ({ request, set }) => {

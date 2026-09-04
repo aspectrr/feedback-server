@@ -16,7 +16,9 @@ db.exec(`
     message     TEXT NOT NULL,
     severity    TEXT NOT NULL DEFAULT 'info',
     rating      INTEGER,
-    agent_id    TEXT
+    agent_id    TEXT,
+    screenshot  BLOB,
+    screenshot_mime TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_feedback_source ON feedback(source);
   CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(id DESC);
@@ -28,7 +30,17 @@ db.exec(`
   );
 `);
 
-export const SEVERITIES = new Set(["info", "warning", "error", "suggestion"]);
+// Migration for DBs created before screenshots existed.
+const cols = (db.query("PRAGMA table_info(feedback)").all() as { name: string }[]).map(
+  (c) => c.name
+);
+if (!cols.includes("screenshot")) db.exec("ALTER TABLE feedback ADD COLUMN screenshot BLOB");
+if (!cols.includes("screenshot_mime"))
+  db.exec("ALTER TABLE feedback ADD COLUMN screenshot_mime TEXT");
+
+export const SEVERITIES = new Set(["info", "warning", "error", "suggestion", "bug"]);
+export const SCREENSHOT_MIMES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+export const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
 export const TOKEN_TTL_MS = 10 * 60_000;
 
 export type FeedbackRow = {
@@ -39,6 +51,8 @@ export type FeedbackRow = {
   severity: string;
   rating: number | null;
   agent_id: string | null;
+  screenshot_mime: string | null;
+  has_screenshot: 0 | 1;
 };
 
 export function createToken(): string {
@@ -74,11 +88,31 @@ export function addFeedback(entry: {
   severity: string;
   rating: number | null;
   agent_id: string | null;
+  screenshot: Buffer | null;
+  screenshot_mime: string | null;
 }): number {
   db.query(
-    "INSERT INTO feedback (source, message, severity, rating, agent_id) VALUES (?, ?, ?, ?, ?)"
-  ).run(entry.source, entry.message, entry.severity, entry.rating, entry.agent_id);
+    "INSERT INTO feedback (source, message, severity, rating, agent_id, screenshot, screenshot_mime) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(
+    entry.source,
+    entry.message,
+    entry.severity,
+    entry.rating,
+    entry.agent_id,
+    entry.screenshot,
+    entry.screenshot_mime
+  );
   return (db.query("SELECT last_insert_rowid() AS id").get() as { id: number }).id;
+}
+
+export function getScreenshot(
+  id: number
+): { bytes: Buffer; mime: string | null } | null {
+  const row = db
+    .query("SELECT screenshot, screenshot_mime FROM feedback WHERE id = ?")
+    .get(id) as { screenshot: Buffer | null; screenshot_mime: string | null } | null;
+  if (!row?.screenshot) return null;
+  return { bytes: row.screenshot, mime: row.screenshot_mime };
 }
 
 export function listFeedback(opts: {
@@ -90,11 +124,14 @@ export function listFeedback(opts: {
   const offset = Math.max(opts.offset ?? 0, 0);
   const source = opts.source;
 
+  // Explicit columns — never select the BLOB into listings.
+  const cols =
+    "id, created_at, source, message, severity, rating, agent_id, screenshot_mime, (screenshot IS NOT NULL) AS has_screenshot";
   return (
     source
       ? db
-          .query("SELECT * FROM feedback WHERE source = ? ORDER BY id DESC LIMIT ? OFFSET ?")
+          .query(`SELECT ${cols} FROM feedback WHERE source = ? ORDER BY id DESC LIMIT ? OFFSET ?`)
           .all(source, limit, offset)
-      : db.query("SELECT * FROM feedback ORDER BY id DESC LIMIT ? OFFSET ?").all(limit, offset)
+      : db.query(`SELECT ${cols} FROM feedback ORDER BY id DESC LIMIT ? OFFSET ?`).all(limit, offset)
   ) as FeedbackRow[];
 }
