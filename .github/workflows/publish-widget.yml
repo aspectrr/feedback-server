@@ -2,26 +2,69 @@ name: Publish widget
 
 on:
   push:
-    tags: ["widget-v*"]
+    branches: [main]
+    paths: ["widget/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-widget
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      packages: write
-      contents: read
+      contents: write
+      id-token: write   # OIDC auth for npm trusted publishing — no NPM_TOKEN secret
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # npm >= 11.5.1 required for trusted publishing OIDC
+          node-version: 24
           registry-url: https://registry.npmjs.org
-      - run: bun install
+
+      - name: Build
         working-directory: widget
-      - run: bun run build
+        run: bun install && bun run build
+
+      # Bump past both the local package.json and the npm registry so repeated
+      # merges and stale checkouts can never collide with a published version.
+      - name: Bump patch version
         working-directory: widget
-      - run: npm publish --access public
+        run: |
+          NEXT=$(node <<'EOF'
+          const pkg = require("./package.json");
+          let reg = "0.0.0";
+          try {
+            reg = require("child_process")
+              .execSync(`npm view ${pkg.name} version`, { stdio: ["ignore", "pipe", "ignore"] })
+              .toString()
+              .trim();
+          } catch {}
+          const gt = (a, b) => {
+            const [p, q, r] = a.split(".").map(Number);
+            const [x, y, z] = b.split(".").map(Number);
+            return p > x || (p === x && q > y) || (p === x && q === y && r > z);
+          };
+          const [maj, min, pat] = (gt(reg, pkg.version) ? reg : pkg.version).split(".").map(Number);
+          console.log(`${maj}.${min}.${pat + 1}`);
+          EOF
+          )
+          npm version "$NEXT" --no-git-tag-version --allow-same-version
+
+      - name: Commit bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          V=$(node -p "require('./widget/package.json').version")
+          git add widget/package.json
+          git commit -m "chore(widget): release v$V [skip ci]"
+
+      - name: Publish to npm (OIDC trusted publishing)
         working-directory: widget
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
+
+      - name: Push version bump
+        run: git push
+        continue-on-error: true
