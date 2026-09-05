@@ -11,19 +11,7 @@ trap, ESC, aria) in the shadcn idiom.
 
 ## Install
 
-Private package — distributed via GitHub Packages, not public npm. One-time
-setup per machine:
-
-1. Create a GitHub PAT with `read:packages` (github.com → Settings → Developer
-   settings), or reuse an existing token.
-2. Add to `~/.npmrc`:
-
-```text
-@aspectrr:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_TOKEN
-```
-
-3. Then in each project:
+Public on npm — nothing to configure:
 
 ```bash
 bun add @aspectrr/feedback-widget
@@ -80,8 +68,10 @@ bun run build   # vite lib build + d.ts into dist/
 
 ## Publish
 
-Tag `widget-v0.1.0` (any `widget-v*`) → GitHub Actions builds and publishes to
-GitHub Packages with the built-in `GITHUB_TOKEN`. Nothing to do locally.
+Automatic: any push to `main` that touches `widget/**` builds the widget,
+bumps the patch version past whatever npm already has, publishes to the public
+registry, and commits the bump back to `main`. Requires one repo secret:
+`NPM_TOKEN` (an npm automation/granular token whose account owns the
+`@aspectrr` scope).
 
-Note: npm versions can't be reused — bump `widget/package.json` version before
-each new tag.
+Note: npm versions can't be reused — CI always picks the next free patch.

@@ -19,7 +19,7 @@
     "directory": "widget"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly"
