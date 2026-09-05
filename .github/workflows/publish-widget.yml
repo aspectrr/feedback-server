@@ -14,12 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write   # OIDC auth for npm trusted publishing — no NPM_TOKEN secret
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # npm >= 11.5.1 required for trusted publishing OIDC
+          node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Build
@@ -59,11 +61,9 @@ jobs:
           git add widget/package.json
           git commit -m "chore(widget): release v$V [skip ci]"
 
-      - name: Publish to npm
+      - name: Publish to npm (OIDC trusted publishing)
         working-directory: widget
         run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Push version bump
         run: git push
