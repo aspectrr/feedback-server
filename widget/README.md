@@ -11,19 +11,7 @@ trap, ESC, aria) in the shadcn idiom.
 
 ## Install
 
-Private package — distributed via GitHub Packages, not public npm. One-time
-setup per machine:
-
-1. Create a GitHub PAT with `read:packages` (github.com → Settings → Developer
-   settings), or reuse an existing token.
-2. Add to `~/.npmrc`:
-
-```text
-@aspectrr:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_TOKEN
-```
-
-3. Then in each project:
+Public on npm — nothing to configure:
 
 ```bash
 bun add @aspectrr/feedback-widget
@@ -80,8 +68,20 @@ bun run build   # vite lib build + d.ts into dist/
 
 ## Publish
 
-Tag `widget-v0.1.0` (any `widget-v*`) → GitHub Actions builds and publishes to
-GitHub Packages with the built-in `GITHUB_TOKEN`. Nothing to do locally.
+Automatic: any push to `main` that touches `widget/**` builds the widget,
+bumps the patch version past whatever npm already has, publishes to the public
+registry via npm trusted publishing (OIDC — no token secret), and commits the
+bump back to `main`.
 
-Note: npm versions can't be reused — bump `widget/package.json` version before
-each new tag.
+One-time bootstrap (the package must exist before npmjs.com will accept a
+trusted-publisher config):
+
+1. `npm login`, then from `widget/`: `npm publish` — creates the package.
+   Your npm account must own the `aspectrr` scope (username or free org).
+2. npmjs.com → Packages → `@aspectrr/feedback-widget` → Settings → Trusted
+   Publisher → GitHub Actions: org `aspectrr`, repo `feedback-server`, workflow
+   `publish-widget.yml`. Under allowed actions, make sure **npm publish** is
+   permitted (new configs default to stage-publish only).
+3. Merge to `main` — CI takes over from there.
+
+Note: npm versions can't be reused — CI always picks the next free patch.

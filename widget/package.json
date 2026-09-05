@@ -1,6 +1,6 @@
 {
   "name": "@aspectrr/feedback-widget",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Floating feedback button + dialog for Solid sites. Submits to aspectrr-feedback server with optional page screenshot.",
   "type": "module",
   "main": "./dist/feedback-widget.js",
@@ -19,7 +19,7 @@
     "directory": "widget"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly"
