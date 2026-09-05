@@ -9,6 +9,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "node": "./dist/server/index.js",
+      "solid": "./dist/feedback-widget.js",
       "import": "./dist/feedback-widget.js"
     }
   },
@@ -24,7 +26,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly"
+    "build": "vite build && vite build --mode server && tsc --emitDeclarationOnly"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.10",
