@@ -1,6 +1,6 @@
 {
   "name": "@aspectrr/feedback-widget",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Floating feedback button + dialog for Solid sites. Submits to aspectrr-feedback server with optional page screenshot.",
   "type": "module",
   "main": "./dist/feedback-widget.js",
