@@ -3,10 +3,12 @@ import solid from "vite-plugin-solid";
 import dts from "vite-plugin-dts";
 
 // Two-pass lib build:
-//   client pass -> dist/feedback-widget.js       (DOM runtime — browsers)
-//   ssr pass    -> dist/feedback-widget.server.js (solid SSR runtime — server rendering)
-// package.json exports route "node" to the server build so SSR never executes
-// the client build's DOM-runtime template() calls (they throw on the server).
+//   client pass -> dist/feedback-widget.js  (DOM runtime — non-Solid bundlers)
+//   ssr pass    -> dist/server/index.js     (solid SSR runtime — plain-node SSR)
+// package.json exports route "node" to the server build. Solid hosts use
+// neither: the "solid" condition points at src/index.ts, so the host's
+// vite-plugin-solid compiles SSR + client from the same source — no
+// prebuilt client/server pair to drift apart.
 export default defineConfig(({ mode }) => {
 	const ssr = mode === "server";
 	return {
@@ -14,12 +16,10 @@ export default defineConfig(({ mode }) => {
 		build: {
 			// ssr pass: build.ssr makes vite-plugin-solid compile with generate:"ssr"
 			...(ssr ? { ssr: "./src/index.ts" as const } : {}),
+			outDir: ssr ? "dist/server" : "dist",
+			emptyOutDir: !ssr,
 			...(ssr
-				? {
-						rollupOptions: {
-							output: { format: "es" as const, entryFileNames: "feedback-widget.server.js" },
-						},
-					}
+				? {}
 				: {
 						lib: {
 							entry: "./src/index.ts",
@@ -27,10 +27,11 @@ export default defineConfig(({ mode }) => {
 							fileName: "feedback-widget",
 						},
 					}),
-			outDir: ssr ? "dist/server" : "dist",
-			emptyOutDir: !ssr,
 			rollupOptions: {
-				external: ["solid-js", "solid-js/web", "@kobalte/core", "modern-screenshot"],
+				// Regexes, not exact strings: source imports subpaths like
+				// @kobalte/core/dialog, which exact-match externals miss — the
+				// dependency then gets bundled into dist.
+				external: [/^solid-js($|\/)/, /^@kobalte\/core($|\/)/, "modern-screenshot"],
 			},
 		},
 	};

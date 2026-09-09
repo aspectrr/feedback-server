@@ -50,7 +50,11 @@ purged:
 - Tailwind v3 — add the package to `content` in `tailwind.config.js`:
 
 ```js
-content: ["./src/**/*.{ts,tsx}", "./node_modules/@aspectrr/feedback-widget/dist/**/*.{js,ts}"],
+// Solid hosts compile from the shipped src/; non-Solid hosts use dist/.
+content: [
+  "./src/**/*.{ts,tsx}",
+  "./node_modules/@aspectrr/feedback-widget/{src,dist}/**/*.{ts,tsx,js}",
+],
 ```
 
 ## Server
