@@ -1,6 +1,6 @@
 {
   "name": "@aspectrr/feedback-widget",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Floating feedback button + dialog for Solid sites. Submits to aspectrr-feedback server with optional page screenshot.",
   "type": "module",
   "main": "./dist/feedback-widget.js",
@@ -9,13 +9,15 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "solid": "./src/index.ts",
       "node": "./dist/server/index.js",
-      "solid": "./dist/feedback-widget.js",
-      "import": "./dist/feedback-widget.js"
+      "import": "./dist/feedback-widget.js",
+      "default": "./dist/feedback-widget.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "repository": {
     "type": "git",
