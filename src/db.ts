@@ -287,7 +287,7 @@ export function consumeAuthCode(code: string): void {
 export async function issueTokens(
   client_id: string,
   scope: string
-): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
+): Promise<{ access_token: string; token_type: "Bearer"; refresh_token: string; expires_in: number }> {
   const access = randomToken();
   const refresh = randomToken();
   db.query("INSERT INTO oauth_tokens (token_hash, type, client_id, scope) VALUES (?, 'access', ?, ?)").run(
@@ -300,7 +300,7 @@ export async function issueTokens(
     client_id,
     scope
   );
-  return { access_token: access, refresh_token: refresh, expires_in: OAUTH_ACCESS_TTL_MS / 1000 };
+  return { access_token: access, token_type: "Bearer", refresh_token: refresh, expires_in: OAUTH_ACCESS_TTL_MS / 1000 };
 }
 
 export async function getAccessToken(token: string): Promise<boolean> {
