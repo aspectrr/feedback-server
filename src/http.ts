@@ -1,9 +1,6 @@
 import { Elysia, t } from "elysia";
 import { clientIp, rateLimited } from "./ratelimit";
 import {
-  MAX_SCREENSHOT_BYTES,
-  SCREENSHOT_MIMES,
-  SEVERITIES,
   addFeedback,
   consumeToken,
   createToken,
@@ -11,6 +8,7 @@ import {
   getToken,
   isTokenExpired,
   listFeedback,
+  normalizeEntry,
 } from "./db";
 
 const ADMIN_KEY = process.env.ADMIN_KEY;
@@ -54,40 +52,13 @@ export const httpRoutes = () =>
           return { error: "invalid or expired token" };
         }
 
-        const { source, message, rating, severity, agent_id, screenshot, screenshot_mime } = body;
-        const ratingNum =
-          typeof rating === "number" && rating >= 1 && rating <= 5 ? Math.trunc(rating) : null;
-        const sev =
-          typeof severity === "string" && SEVERITIES.has(severity) ? severity : "info";
-        const agent = typeof agent_id === "string" && agent_id.trim() ? agent_id.trim() : null;
-
-        // ponytail: Buffer.from ignores invalid base64 chars silently; size checks are the real gate.
-        let shot: Buffer | null = null;
-        if (typeof screenshot === "string" && screenshot.length) {
-          if (screenshot.length > (MAX_SCREENSHOT_BYTES / 3) * 4) {
-            set.status = 413;
-            return { error: `screenshot too large (max ${MAX_SCREENSHOT_BYTES / 1024 / 1024}MB)` };
-          }
-          shot = Buffer.from(screenshot, "base64");
-          if (shot.length === 0 || shot.length > MAX_SCREENSHOT_BYTES) {
-            set.status = 422;
-            return { error: "screenshot is empty or too large" };
-          }
+        const n = normalizeEntry(body);
+        if ("error" in n) {
+          set.status = n.status;
+          return { error: n.error };
         }
-        const shotMime =
-          typeof screenshot_mime === "string" && SCREENSHOT_MIMES.has(screenshot_mime)
-            ? screenshot_mime
-            : "image/png";
 
-        const id = addFeedback({
-          source: source.trim(),
-          message: message.trim(),
-          severity: sev,
-          rating: ratingNum,
-          agent_id: agent,
-          screenshot: shot,
-          screenshot_mime: shot ? shotMime : null,
-        });
+        const id = addFeedback(n.entry);
         consumeToken(token);
         set.status = 201;
         return { id };

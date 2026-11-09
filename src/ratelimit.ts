@@ -1,5 +1,5 @@
 // In-memory fixed-window rate limit. Single instance → fine.
-const RATE_LIMIT = 10;
+const RATE_LIMIT = Number(process.env.RATE_LIMIT ?? 10);
 const RATE_WINDOW_MS = 60_000;
 const hits = new Map<string, { count: number; reset: number }>();
 

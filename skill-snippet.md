@@ -19,4 +19,6 @@ curl -s -X POST https://feedback.YOUR-DOMAIN.com/feedback \
   -d "{\"source\":\"<SKILL-NAME>\",\"message\":\"<their words>\",\"screenshot\":\"$SHOT\"}"
 ```
 
-Read entries back via the MCP server (`list_feedback`; `get_feedback_screenshot` for attached images) or `GET /feedback` with the admin key — `GET /feedback/<id>/screenshot` returns the raw image.
+To read entries back, connect to the MCP server at `https://feedback.YOUR-DOMAIN.com/mcp` (streamable HTTP). The agent fetches a one-time code the same way, then sends it on every MCP request as `Authorization: Bearer $TOKEN` — use `list_feedback`, and `get_feedback_screenshot` for attached images. Codes live 10 minutes; grab a fresh one per session. (Admin key on `GET /feedback` still works for humans.)
+
+If the agent is already connected to the MCP server, it can do the whole flow in-MCP: `get_feedback_token` mints a code, `submit_feedback` leaves feedback (pass the minted token as its `code` arg).
