@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { httpRoutes } from "./http";
 import { mcpHandler } from "./mcp";
-import { oauthRoutes } from "./oauth";
+import { oauthRoutes, origin } from "./oauth";
 import { getAccessToken, getToken, isTokenExpired } from "./db";
 
 const ADMIN_KEY = process.env.ADMIN_KEY;
@@ -34,7 +34,7 @@ const app = new Elysia()
       (bearer !== null && (await getAccessToken(bearer)));
     if (!authed) {
       set.status = 401;
-      const o = new URL(request.url).origin;
+      const o = origin(request);
       set.headers["www-authenticate"] = `Bearer resource_metadata="${o}/.well-known/oauth-protected-resource/mcp"`;
       return {
         error: "unauthorized",

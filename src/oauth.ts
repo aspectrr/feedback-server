@@ -17,7 +17,16 @@ import {
 // Feedback one-time codes stay untouched — they gate writes, not connections.
 
 const SCOPE = "feedback";
-const origin = (request: Request) => new URL(request.url).origin;
+// Behind Fly's proxy TLS terminates at the edge: request.url is http:// even
+// though the public origin is https://. Trust the forwarded proto/host so the
+// issuer pi validates matches the public URL (RFC 8414).
+export const origin = (request: Request) => {
+  const fwdProto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+  const fwdHost = (request.headers.get("x-forwarded-host") ?? request.headers.get("host"))?.split(",")[0].trim();
+  if ((fwdProto === "http" || fwdProto === "https") && fwdHost && /^[\w.-]+(:\d+)?$/.test(fwdHost))
+    return `${fwdProto}://${fwdHost}`;
+  return new URL(request.url).origin;
+};
 
 // Pending consent requests live only in memory: a machine restart just means
 // the user clicks again. Keyed by an unguessable id that only the consent
